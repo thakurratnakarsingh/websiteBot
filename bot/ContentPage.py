@@ -12,22 +12,29 @@ import requests
 def download_file_with_progress(url, save_path):
     # Ensure save directory exists
     os.makedirs(save_path, exist_ok=True)
-    local_filename = os.path.join(save_path, url.split("/")[-1])  # Extract file name from URL
 
-    # Request the file and download with progress logging
-    with requests.get(url, stream=True) as response:
-        total_size = int(response.headers.get('content-length', 0))  # Total file size in bytes
-        chunk_size = 1024  # Set the chunk size
-        downloaded_size = 0
+    # Extract clean file name (remove query parameters)
+    file_name = url.split("/")[-1].split("?")[0]  # File name without query parameters
+    local_filename = os.path.join(save_path, file_name)
 
-        with open(local_filename, "wb") as file:
-            for data in response.iter_content(chunk_size=chunk_size):
-                file.write(data)
-                downloaded_size += len(data)
-                percent = (downloaded_size / total_size) * 100
-                print(f"\rDownload progress: {percent:.2f}%", end="")
+    try:
+        # Download file with requests
+        with requests.get(url, stream=True) as response:
+            response.raise_for_status()  # Raise error for HTTP issues
+            total_size = int(response.headers.get('content-length', 0))  # Get total file size
+            chunk_size = 1024  # 1 KB chunks
+            downloaded_size = 0
 
-    print(f"File downloaded successfully and saved at {local_filename}")
+            with open(local_filename, "wb") as file:
+                for data in response.iter_content(chunk_size=chunk_size):
+                    file.write(data)
+                    downloaded_size += len(data)
+                    percent = (downloaded_size / total_size) * 100
+                    print(f"\rDownload progress: {percent:.2f}%", end="")
+
+        print(f"\nFile downloaded successfully and saved at: {local_filename}")
+    except Exception as e:
+        print(f"Error during file download: {e}")
 
 def download_from_streamtape(driver, url):
     print("download_from_streamtape is working")
@@ -79,6 +86,7 @@ def download_from_dropgalaxy(driver, url):
 
 
 def download_from_hubdrive(driver, url):
+    global download_url_hubcloud_link
     print("Starting download_from_hubdrive...")
     driver.get(url)
     time.sleep(20)  # Initial wait for the page to load
@@ -94,11 +102,12 @@ def download_from_hubdrive(driver, url):
             EC.visibility_of_element_located((By.XPATH, "//h5/a[contains(@href, 'hubcloud')]"))
         )
 
-        # driver.execute_script("arguments[0].scrollIntoView(true);", hubcloud_link)
-        # time.sleep(5)
+        # Click on HubCloud download link
         driver.execute_script("arguments[0].click();", hubcloud_link)
         print(f"Clicked on HubCloud download link: {hubcloud_link.get_attribute('href')}")
+        download_url_hubcloud_link = hubcloud_link.get_attribute('href')
         time.sleep(20)
+
         result = fetch_dynamic_url(hubcloud_link.get_attribute('href'))
         print(f"The search URL found is: '{result}'")
         match = re.search(r'https?://[^\s]+', result)
@@ -111,6 +120,7 @@ def download_from_hubdrive(driver, url):
         else:
             print("Error: No valid URL found in the result.")
             return  # Exit if no valid URL was found
+
         if result and result.endswith('='):
             print(f"Navigated to the dynamic URL: {result}")
             original_tab = driver.current_window_handle
@@ -128,28 +138,27 @@ def download_from_hubdrive(driver, url):
             driver.switch_to.window(original_tab)
             driver.get(result)
             time.sleep(30)
-            try:
-                # Wait until the "Download [FSL Server]" link is clickable
-                fsl_server_link = WebDriverWait(driver, 20).until(
-                    EC.element_to_be_clickable((By.XPATH, "//a[contains(text(), 'Download [FSL Server]')]"))
-                )
-                # driver.execute_script("arguments[0].scrollIntoView(true);", fsl_server_link)
-                # time.sleep(5)
-                file_download_url = fsl_server_link.get_attribute("href")  # Get the href of the download link
-                download_file_with_progress(file_download_url,'D:\\testing')  # Start file download with progress logging
-                # driver.execute_script("arguments[0].click();", fsl_server_link)
-                print("Clicked on Download [FSL Server] link.")
-                print(f"File download URL: {file_download_url}")
-                return 1,file_download_url
-            except Exception as e:
-                print(f"An error occurred while clicking on Download [FSL Server] link: {e}")
 
-        else:
-            print(f"Error: Invalid URL format returned from fetch_dynamic_url: '{result}'")
+        try:
+            fsl_server_link = WebDriverWait(driver, 20).until(
+                EC.element_to_be_clickable((By.XPATH, "//a[contains(text(), 'Download [FSL Server]')]"))
+            )
+            driver.execute_script("arguments[0].scrollIntoView(true);", fsl_server_link)
+            time.sleep(5)  # Allow the browser to stabilize
+            download_url = fsl_server_link.get_attribute("href")
+            print(f"Clicked on download link: {download_url}")
+            download_file_with_progress(download_url, "D:\\testing")
+            print("Download completed")
+            time.sleep(10)
+            print(f"Returning URL: {hubcloud_link.get_attribute('href')}")
+            # Return the required value
+            return 1, download_url_hubcloud_link
 
+        except Exception as e:
+            print(f"Error clicking the download link: {e}")
+            return 1, download_url_hubcloud_link
     except Exception as e:
-        print(f"An error occurred during the download process: {e}")
-        return  0
+        print(f"An error occurred: {e}")
 
 
 def fetch_dynamic_url(url):
@@ -157,12 +166,12 @@ def fetch_dynamic_url(url):
     driver.get(url)
 
     # Thodi der rukna, takki page completely load ho jaye
-    time.sleep(5)  # Isse adjust karein based on page load time
+    time.sleep(20)  # Isse adjust karein based on page load time
 
     source_code = driver.page_source
-
     # Specific dynamic URL ko extract karne ke liye updated regular expression
-    pattern = r"var url = '(https://gamerxyt\.com/hubcloud\.php\?host=hubcloud&id=.*?&token=.*?);"
+    # pattern = r"var url = '(https://gamerxyt\.com/hubcloud\.php\?host=hubcloud&id=.*?&token=.*?);"
+    pattern = r"var url = '(https://shetkaritoday\.in/hubcloud\.php\?host=hubcloud&id=.*?&token=.*?);"
     search_result = re.search(pattern, source_code)
 
     driver.quit()  # Driver ko band karein
@@ -177,6 +186,7 @@ def fetch_dynamic_url(url):
 def download_images(driver, full_url):
     try:
         # Open the provided URL
+        # return 1 , 'https://hubcloud.art/drive/11kjdffuiviahqi'
         driver.get(full_url)
 
         page_source = driver.page_source
