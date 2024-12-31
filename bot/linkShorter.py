@@ -26,9 +26,9 @@ def LinkShorterMaking(driver, full_url):
         username_field = WebDriverWait(driver, 20).until(
             EC.presence_of_element_located((By.ID, "username"))
         )
-        username_field.send_keys("ankurai184")
+        username_field.send_keys("thakursingh294r")
         password_field = driver.find_element(By.ID, "password")
-        password_field.send_keys("asdfghjkl")
+        password_field.send_keys("Newy@rk2963")
         remember_me = driver.find_element(By.ID, "remember-me")
         if not remember_me.is_selected():
             remember_me.click()

@@ -1,25 +1,5 @@
-import os
 import time
-import pyautogui
-import subprocess
-from selenium.webdriver.common.by import By
-import pyperclip
-
-def get_dynamic_data(driver):
-    try:
-        # Extract film name
-        film_name_element = driver.find_element(By.CSS_SELECTOR, "div.Robiul b")
-        film_name = film_name_element.text.split(' (')[0]  # This will get the part before the year
-
-        # Extract stars (correct extraction of the artist name)
-        stars_element = driver.find_element(By.XPATH, "//div[@class='Let'][b[contains(text(),'Stars :')]]/b")
-        stars = stars_element.text.replace("Stars : ", "").strip()  # Get only the artist names without "Stars : "
-
-        return film_name, stars
-    except Exception as e:
-        print(f"Error extracting dynamic data: {e}")
-        return None, None
-
+from telegramCommonFunction import get_dynamic_data ,send_message_to_channel, openTelegramInPC,send_pre_message_to_channel
 
 def fileIsDownloadedNowUpload(driver, full_url, short_url):
     try:
@@ -50,76 +30,72 @@ ______
 Download Link
 {short_url}
 ______
-Demo Link
-
+Demo Link 
+https://t.me/+VCMVDx-ijxFlODdl
 ______
-Monthly : 70 Rs,
-Six month : 300 Rs,
-Yearly : 500 Rs,
-Lifetime : 800 Rs,
+Monthly : 50 Rs,
+Three month : 100 Rs,
+Six month : 150 Rs,
+Yearly : 200 Rs,
+Lifetime : 300 Rs,
 
 ➖➖➖➖➖➖➖➖➖➖➖➖
-Admin : @moons_fans
+Admin : @johnny_fans
 """
+        messagePre = f"""
+🔞🚱{film_name} 🎥📹
+💽🔴N/A
+______
+💽🔴Stars : {stars}
+______
+Download Now 👇👇
+"""
+
+        messageContent = f"""
+🔞🚱{film_name} 🎥📹
+💽🔴N/A
+        """
         print("Generated message:\n", message)
-
-        # Check if Telegram Desktop is already running
-        telegram_title_found = False
-        for attempt in range(10):  # Retry for up to 10 seconds
-            active_window = pyautogui.getActiveWindowTitle()
-            if active_window and "Telegram" in active_window:
-                telegram_title_found = True
-                print("Telegram Desktop is already active.")
-                break
-            time.sleep(1)
-
-        # If Telegram Desktop is not open, launch it
-        if not telegram_title_found:
-            print("Launching Telegram Desktop...")
-            telegram_path = r'C:\Users\Ratnakar Singh PC\AppData\Roaming\Telegram Desktop\Telegram.exe'
-            if not os.path.exists(telegram_path):
-                raise FileNotFoundError(f"Telegram.exe not found at {telegram_path}")
-            subprocess.Popen(telegram_path)
-
-            # Wait for Telegram Desktop to open
-            for attempt in range(10):
-                active_window = pyautogui.getActiveWindowTitle()
-                if active_window and "Telegram" in active_window:
-                    print("Telegram Desktop is now active.")
-                    break
-                time.sleep(1)
-            else:
-                raise TimeoutError("Telegram Desktop did not open.")
-
-        # Focus on Telegram and search for the contact/channel
-        print("Searching for 'testing material'...")
-        pyautogui.hotkey("ctrl", "k")  # Open the search bar
-        time.sleep(1)
-        pyautogui.typewrite("testing material")
-        time.sleep(2)
-        pyautogui.press("enter")
-        time.sleep(2)
-
-        # Attach the image
-        print("Attaching the image...")
+        openTelegramInPC()
         image_path = r"D:\testing\poster.jpg"
-        if not os.path.exists(image_path):
-            raise FileNotFoundError(f"Image not found at {image_path}")
-
-        pyautogui.hotkey("ctrl", "o")  # Open the file attachment dialog
-        time.sleep(2)
-        pyautogui.typewrite(image_path)  # Enter the file path
-        pyautogui.press("enter")  # Confirm attachment
-        time.sleep(5)  # Wait for the image to attach
-
-        # Paste the message as a caption
-        print("Sending the message with the image...")
-        pyperclip.copy(message)  # Copy the message to clipboard
-        pyautogui.hotkey("ctrl", "v")  # Paste the message
-        time.sleep(2)
-        pyautogui.press("enter")  # Send the message with the image
-        print("Image and message sent successfully.")
+        send_message_to_channel("Feni | Dugru | Ullu", message, image_path)
+        time.sleep(5)
+        openTelegramInPC()
+        time.sleep(10)
+        send_message_to_channel("Prime Xtream | CineOn | Jalsa Tv", message, image_path)
+        time.sleep(5)
+        openTelegramInPC()
+        time.sleep(10)
+        send_message_to_channel("NeonX | LookEnt | IBAMovies", message, image_path)
+        time.sleep(5)
+        openTelegramInPC()
+        time.sleep(10)
+        send_message_to_channel("MeetX | NavaRasa| MakhanApp", message, image_path)
+        time.sleep(5)
+        openTelegramInPC()
+        time.sleep(10)
+        send_message_to_channel("Resmi Nair | Poonam Panday | LavaOTT", message, image_path)
+        time.sleep(10)
+        openTelegramInPC()
+        send_message_to_channel("Show Hit | WebSX | Sigma", message, image_path)
+        time.sleep(5)
+        openTelegramInPC()
+        time.sleep(10)
+        send_message_to_channel("MoodX | RioPlus | HulChul", message, image_path)
+        time.sleep(5)
+        openTelegramInPC()
+        time.sleep(10)
+        send_message_to_channel("Xtreme | Triflicks | BoomEX", message, image_path)
+        time.sleep(10)
+        # openTelegramInPC()
+        # send_message_to_channel("MeetX | NavaRasa| MakhanApp", message, image_path)
+        # time.sleep(10)
+        openTelegramInPC()
+        send_pre_message_to_channel("Adult Webseries Premium" ,messagePre, image_path, messageContent,film_name)
+        time.sleep(10)
+        print("All messages sent successfully.")
         return 1
+
     except FileNotFoundError as fnf:
         print("File not found:", str(fnf))
         return 0
@@ -129,3 +105,7 @@ Admin : @moons_fans
     except Exception as e:
         print("An unexpected error occurred:", str(e))
         return 0
+
+
+
+

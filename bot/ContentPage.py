@@ -41,7 +41,6 @@ def download_from_streamtape(driver, url):
     driver.get(url)  # Navigate to the download URL
     time.sleep(5)  # Adjust time as needed for loading
 
-
 def download_from_vidtube(driver, url):
     print("download_from_vidtube is working")
     driver.get(url)  # Navigate to the download URL
@@ -137,7 +136,7 @@ def download_from_hubdrive(driver, url):
             # Switch back to the original HubCloud tab
             driver.switch_to.window(original_tab)
             driver.get(result)
-            time.sleep(30)
+            time.sleep(10)
 
         try:
             fsl_server_link = WebDriverWait(driver, 20).until(
@@ -173,7 +172,6 @@ def fetch_dynamic_url(url):
     # pattern = r"var url = '(https://gamerxyt\.com/hubcloud\.php\?host=hubcloud&id=.*?&token=.*?);"
     pattern = r"var url = '(https://shetkaritoday\.in/hubcloud\.php\?host=hubcloud&id=.*?&token=.*?);"
     search_result = re.search(pattern, source_code)
-
     driver.quit()  # Driver ko band karein
 
     if search_result:
@@ -181,7 +179,6 @@ def fetch_dynamic_url(url):
         return f"Dynamic URL: {dynamic_url}"
     else:
         return "'var url' mein expected pattern nahi mila."
-
 
 def download_images(driver, full_url):
     try:
@@ -285,6 +282,64 @@ def download_images(driver, full_url):
 
     except Exception as e:
         print(f"An error occurred while processing the URL: {e}")
+
+
+def download_images1_steemtape_downloads(driver, full_url):
+    try:
+        # Open the provided URL
+        driver.get(full_url)
+
+        # Parse the page and download images
+        page_source = driver.page_source
+        soup = BeautifulSoup(page_source, 'html.parser')
+        save_path = 'D:\\testing'
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+        images = soup.find_all('img')
+        for idx, img in enumerate(images, start=1):
+            img_url = img.get('src')
+            if img_url.startswith('/'):
+                img_url = full_url + img_url
+            try:
+                img_data = requests.get(img_url).content
+                file_name = 'poster.jpg' if idx == 3 else f'image{idx}.jpg'
+                with open(os.path.join(save_path, file_name), 'wb') as f:
+                    f.write(img_data)
+                    print(f"Downloaded {file_name} from {img_url}")
+            except Exception as e:
+                print(f"Failed to download {img_url}: {e}")
+
+        # Extract and modify the video URL
+        link = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.XPATH, "//a[contains(@href, 'https://streamtape')]"))
+        )
+        original_url = link.get_attribute('href')
+        print(f"Original URL: {original_url}")
+
+        # Modify the URL to replace "v" with "e" and ensure domain suffix is ".com"
+        modified_url = original_url.replace('.site', '.com').replace('/v/', '/e/')
+        print(f"Modified URL: {modified_url}")
+
+        # Navigate to the modified URL
+        driver.get(modified_url)
+
+        # Extract the direct video URL from the video tag
+        time.sleep(5)  # Allow the page to load fully
+        video_element = driver.find_element(By.TAG_NAME, 'video')
+        video_url = video_element.get_attribute('src')
+        print(f"Direct video URL: {video_url}")
+
+        # Download the video
+        video_response = requests.get(video_url, stream=True)
+        video_path = os.path.join(save_path, 'downloaded_video.mp4')
+        with open(video_path, 'wb') as video_file:
+            for chunk in video_response.iter_content(chunk_size=1024):
+                if chunk:
+                    video_file.write(chunk)
+        print(f"Video downloaded successfully as {video_path}")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
 

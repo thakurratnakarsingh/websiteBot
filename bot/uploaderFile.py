@@ -2,6 +2,7 @@ import time
 from selenium.webdriver.common.by import By
 from downloadUpload import fileIsDownloadedNowUpload
 from linkShorter import  LinkShorterMaking
+from telegramCommonFunction import clear_directory_and_recycle_bin
 
 def uploadDownloadFile(driver, res ,db_query):
     try:
@@ -29,7 +30,8 @@ def uploadDownloadFile(driver, res ,db_query):
                                response = fileIsDownloadedNowUpload(driver,full_url,res[6])
                                if response == 1 :
                                    print("Image and message sent successfully.")
-                                   db_query.updateIsCompleted(res[0],response)
+                                   db_query.updateIsCompleted(res[0],1)
+                                   clear_directory_and_recycle_bin(r"D:\testing")
                                    return
                             else:
                               getShortUrl = LinkShorterMaking(driver ,res[5])
@@ -38,7 +40,9 @@ def uploadDownloadFile(driver, res ,db_query):
                               response = fileIsDownloadedNowUpload(driver, full_url, res[6])
                               if response == 1:
                                   print("Image and message sent successfully.")
-                                  db_query.updateIsCompleted(res[0], response)
+                                  db_query.updateIsCompleted(res[0], 1)
+                                  clear_directory_and_recycle_bin(r"D:\testing")
+
                                   return
                               print(f"After Short URL to full url: {full_url}")
                         else:

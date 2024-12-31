@@ -1,7 +1,8 @@
 from selenium.webdriver.common.by import By
-import time
 from ContentPage import download_images
-from uploaderFile import uploadDownloadFile
+from downloadUpload import fileIsDownloadedNowUpload
+from linkShorter import  LinkShorterMaking
+from telegramCommonFunction import clear_directory_and_recycle_bin
 
 def downloadNewFileAndUpload(driver, res, db_query):
     try:
@@ -31,9 +32,17 @@ def downloadNewFileAndUpload(driver, res, db_query):
                             print(f"Download completed with status: {download_Done}  new data is  {download_Done[1]}")
                             print("Keeping the browser open for 10 minutes...", previous_element_text)
                             db_query.insert_entry(previous_element_text, 0, download_Done[0], 0,download_Done[1])
+                            getShortUrl = LinkShorterMaking(driver, download_Done[1])
+                            print(f"Short URL to Linkshorter: {getShortUrl}")
                             response = db_query.fetch_latest_entry()
-                            uploadDownloadFile(driver, response, db_query)
-                            return
+                            print("The Database latest entry is response", response)
+                            db_query.updateShortUrl(response[0], getShortUrl)
+                            responses = fileIsDownloadedNowUpload(driver, full_url, getShortUrl)
+                            if responses == 1:
+                                print("Image and message sent successfully.")
+                                db_query.updateIsCompleted(response[0], 1)
+                                clear_directory_and_recycle_bin(r"D:\testing")
+                                return
                         else:
                             print("No href found for the previous element.")
                     else:

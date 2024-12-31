@@ -64,4 +64,5 @@ if __name__ == "__main__":
         print("Starting program execution...")
         run_program()
         print("Execution completed. Waiting for 30 minutes...")
-        time.sleep(1 * 30)  # Wait for 30 minutes before the next execution
+        time.sleep(120)
+        # time.sleep(30 * 60)  # Wait for 30 minutes before the next execution
